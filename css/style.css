@@ -1,0 +1,25 @@
+:root { --bg:#232323; --fg:#e6e6e6; --muted:#9a9a9a; --field:#1a1a1a; --line:#3c3c3c; --accent:#2d8ceb; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:12px/1.4 -apple-system,"Segoe UI",sans-serif; }
+main { padding:12px 14px 24px; }
+h1 { font-size:15px; margin:0 0 12px; } h1 small { color:var(--muted); font-weight:normal; font-size:11px; }
+label { display:block; margin:8px 0 3px; color:var(--muted); }
+label.check { display:flex; gap:6px; align-items:center; color:var(--fg); margin-top:10px; }
+input[type=text], select { width:100%; padding:6px 8px; background:var(--field); color:var(--fg); border:1px solid var(--line); border-radius:3px; }
+input:focus, select:focus { outline:1px solid var(--accent); }
+fieldset { border:1px solid var(--line); border-radius:4px; margin:12px 0; padding:4px 10px 10px; }
+legend { color:var(--muted); padding:0 4px; }
+.row { display:flex; gap:6px; } .col { flex:1; }
+button { padding:6px 12px; border-radius:3px; border:1px solid var(--line); background:#3a3a3a; color:var(--fg); cursor:pointer; }
+button:hover { background:#464646; }
+button.primary { width:100%; background:var(--accent); border-color:var(--accent); color:#fff; font-size:13px; padding:9px; }
+button.secondary { width:100%; margin-top:6px; }
+button:disabled { opacity:.5; cursor:default; }
+.hint { color:var(--muted); font-size:11px; margin:6px 0 0; }
+code { background:var(--field); padding:0 3px; }
+.meta { display:flex; gap:8px; margin-top:8px; align-items:center; } .meta img { width:80px; border-radius:3px; }
+#progress { height:6px; background:var(--field); border-radius:3px; margin-top:10px; overflow:hidden; }
+#bar { height:100%; width:0; background:var(--accent); transition:width .2s; }
+.status { margin-top:8px; min-height:16px; } .status.err { color:#ff6b6b; } .status.ok { color:#6bd67d; }
+.log { max-height:160px; overflow:auto; background:var(--field); padding:6px; font-size:10px; white-space:pre-wrap; user-select:text; }
+.hidden { display:none !important; }

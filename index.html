@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>YT2PR</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <h1>YT2PR <small>Téléchargeur vidéo</small></h1>
+
+    <label for="url">Lien de la vidéo</label>
+    <div class="row">
+      <input id="url" type="text" placeholder="YouTube, X/Twitter, Instagram, TikTok…" spellcheck="false">
+      <button id="paste" title="Coller depuis le presse-papiers">Coller</button>
+    </div>
+    <button id="info" class="secondary">Analyser le lien</button>
+    <div id="meta" class="meta hidden">
+      <img id="thumb" alt="">
+      <div><strong id="title"></strong><br><span id="duration"></span></div>
+    </div>
+
+    <fieldset>
+      <legend>Portion à télécharger (timecode)</legend>
+      <div class="row">
+        <div class="col"><label for="start">Début</label>
+          <input id="start" type="text" placeholder="00:00:00"></div>
+        <div class="col"><label for="end">Fin</label>
+          <input id="end" type="text" placeholder="fin de la vidéo"></div>
+      </div>
+      <p class="hint">Formats : <code>SS</code>, <code>MM:SS</code>, <code>HH:MM:SS</code>. Laisser vide = vidéo entière.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Options</legend>
+      <label for="format">Format d'import (qualité maximale toujours)</label>
+      <select id="format">
+        <option value="auto">Auto – sans perte si possible (recommandé)</option>
+        <option value="prores">ProRes 422 HQ (.mov)</option>
+        <option value="h264">H.264 très haute qualité (.mp4)</option>
+        <option value="original">Original (mkv/webm, non importable sans conversion)</option>
+      </select>
+
+      <label for="cookies">Cookies du navigateur (Instagram/X privés)</label>
+      <select id="cookies">
+        <option value="">Aucun</option>
+        <option value="chrome">Chrome</option>
+        <option value="firefox">Firefox</option>
+        <option value="edge">Edge</option>
+        <option value="safari">Safari</option>
+        <option value="brave">Brave</option>
+      </select>
+
+      <label for="outdir">Dossier de destination</label>
+      <div class="row">
+        <input id="outdir" type="text" spellcheck="false">
+        <button id="browse">…</button>
+      </div>
+
+      <label class="check"><input id="autoimport" type="checkbox" checked> Importer dans le projet (chute « YT2PR »)</label>
+      <label class="check"><input id="autoinsert" type="checkbox"> Insérer sur la timeline à la tête de lecture</label>
+    </fieldset>
+
+    <button id="go" class="primary">Télécharger</button>
+    <button id="cancel" class="secondary hidden">Annuler</button>
+
+    <div id="progress" class="hidden"><div id="bar"></div></div>
+    <div id="status" class="status"></div>
+    <pre id="log" class="log hidden"></pre>
+    <a href="#" id="togglelog" class="hint">Afficher/masquer les détails</a>
+  </main>
+
+  <script src="js/CSInterface.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

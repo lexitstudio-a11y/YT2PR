@@ -9,6 +9,29 @@
   var binDir = path.join(cs.getSystemPath("userData"), "YT2PR", "bin");
   var duration = 0, job = null;
 
+  // (Re)charge le script Premiere à chaque ouverture, pour qu'une mise à jour de host.jsx soit prise en compte.
+  cs.evalScript('$.evalFile("' + path.join(extDir, "jsx", "host.jsx").replace(/\\/g, "/") + '")');
+
+  var verFile = path.join(extDir, ".version");
+  try { $("updmsg").textContent = "Version installée : " + fs.readFileSync(verFile, "utf8"); } catch (e) { $("updmsg").textContent = "Version installée : d'origine"; }
+  $("branch").value = localStorage.getItem("yt2pr.branch") || core_branch();
+  $("token").value = localStorage.getItem("yt2pr.token") || "";
+  function core_branch() { return window.YT2PRUpdater.DEFAULT_BRANCH; }
+
+  $("update").onclick = function () {
+    localStorage.setItem("yt2pr.branch", $("branch").value.trim());
+    localStorage.setItem("yt2pr.token", $("token").value.trim());
+    $("update").disabled = true; $("updmsg").textContent = "Mise à jour…";
+    window.YT2PRUpdater.update({ extDir: extDir, branch: $("branch").value.trim(), token: $("token").value.trim() }, log)
+      .then(function (r) {
+        try { fs.writeFileSync(verFile, r.version); } catch (e) {}
+        if (r.needsRestart) { $("updmsg").textContent = "Mis à jour (" + r.version + "). Le manifest a changé : redémarrez Premiere Pro."; $("update").disabled = false; return; }
+        $("updmsg").textContent = r.changed.length ? "Mis à jour (" + r.version + "), rechargement…" : "Déjà à jour (" + r.version + ").";
+        if (r.changed.length) setTimeout(function () { location.reload(); }, 600); else $("update").disabled = false;
+      })
+      .catch(function (e) { $("updmsg").textContent = "Échec : " + e.message; $("update").disabled = false; });
+  };
+
   function setStatus(msg, cls) { $("status").textContent = msg; $("status").className = "status " + (cls || ""); }
   function log(msg) { var l = $("log"); l.textContent += msg + "\n"; l.scrollTop = l.scrollHeight; }
   function progress(p) { $("progress").classList.remove("hidden"); $("bar").style.width = Math.round(p * 100) + "%"; }

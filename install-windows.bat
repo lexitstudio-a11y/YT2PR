@@ -8,6 +8,6 @@ xcopy /e /i /y "%~dp0js" "%DEST%\js" >nul
 xcopy /e /i /y "%~dp0jsx" "%DEST%\jsx" >nul
 xcopy /e /i /y "%~dp0css" "%DEST%\css" >nul
 copy /y "%~dp0index.html" "%DEST%\" >nul
-for %%v in (9 10 11 12) do reg add "HKCU\Software\Adobe\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul
+ for %%v in (9 10 11 12) do reg add "HKCU\Software\Adobe\CSXS.%%v" /v PlayerDebugMode /t REG_SZ /d 1 /f >nul
 echo OK. Redemarrez Premiere Pro puis : Fenetre ^> Extensions ^> YT2PR
 pause

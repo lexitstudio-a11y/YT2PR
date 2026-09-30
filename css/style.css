@@ -23,3 +23,7 @@ code { background:var(--field); padding:0 3px; }
 .status { margin-top:8px; min-height:16px; } .status.err { color:#ff6b6b; } .status.ok { color:#6bd67d; }
 .log { max-height:160px; overflow:auto; background:var(--field); padding:6px; font-size:10px; white-space:pre-wrap; user-select:text; }
 .hidden { display:none !important; }
+.head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; } .head h1 { margin:0; }
+.head button { padding:3px 8px; font-size:11px; }
+input[type=password] { width:100%; padding:6px 8px; background:var(--field); color:var(--fg); border:1px solid var(--line); border-radius:3px; }
+.adv { margin-top:14px; color:var(--muted); } .adv summary { cursor:pointer; }

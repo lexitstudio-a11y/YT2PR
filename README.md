@@ -12,6 +12,9 @@ Redémarrez Premiere Pro, puis **Fenêtre → Extensions → YT2PR – Télécha
 
 Au premier lancement, le panneau télécharge automatiquement **yt-dlp** et **ffmpeg** (dossier utilisateur Adobe). Si déjà installés (PATH), ils sont réutilisés.
 
+## Mise à jour
+Bouton **⟳ Mettre à jour** en haut du panneau : il récupère la dernière version depuis GitHub, remplace les fichiers installés et recharge le panneau (plus besoin de réinstaller). Si le manifest change, redémarrez Premiere. Dépôt privé : renseignez un jeton GitHub dans « Réglages de mise à jour ».
+
 ## Utilisation
 1. Collez le lien (bouton *Coller* ou Ctrl/Cmd+V), « Analyser le lien » pour voir titre et durée (facultatif).
 2. Timecode : `SS`, `MM:SS` ou `HH:MM:SS`. Début seul = jusqu'à la fin ; vide = vidéo entière.

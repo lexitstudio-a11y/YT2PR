@@ -7,7 +7,11 @@
 </head>
 <body>
   <main>
-    <h1>YT2PR <small>Téléchargeur vidéo</small></h1>
+    <div class="head">
+      <h1>YT2PR <small>Téléchargeur vidéo</small></h1>
+      <button id="update" title="Récupère la dernière version du plug-in et recharge le panneau">⟳ Mettre à jour</button>
+    </div>
+    <div id="updmsg" class="hint"></div>
 
     <label for="url">Lien de la vidéo</label>
     <div class="row">
@@ -67,11 +71,19 @@
     <div id="progress" class="hidden"><div id="bar"></div></div>
     <div id="status" class="status"></div>
     <pre id="log" class="log hidden"></pre>
+    <details class="adv">
+      <summary>Réglages de mise à jour</summary>
+      <label for="branch">Branche GitHub</label>
+      <input id="branch" type="text" spellcheck="false">
+      <label for="token">Jeton GitHub (seulement si le dépôt est privé)</label>
+      <input id="token" type="password" spellcheck="false">
+    </details>
     <a href="#" id="togglelog" class="hint">Afficher/masquer les détails</a>
   </main>
 
   <script src="js/CSInterface.js"></script>
   <script src="js/core.js"></script>
+  <script src="js/updater.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

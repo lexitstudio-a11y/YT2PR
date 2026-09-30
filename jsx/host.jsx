@@ -34,6 +34,46 @@ function yt2prEsc(s) {
   return String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\r\n]+/g, " ");
 }
 
+// Vrai si la piste n'a aucun clip qui chevauche [from, to[ (en secondes).
+function yt2prTrackFree(track, from, to) {
+  try { if (track.isLocked && track.isLocked()) return false; } catch (e) {}
+  for (var i = 0; i < track.clips.numItems; i++) {
+    var c = track.clips[i];
+    if (c.start.seconds < to && c.end.seconds > from) return false;
+  }
+  return true;
+}
+
+// Place le clip sur la paire de pistes (vidéo + audio) vide la plus basse, à la tête de lecture.
+// Ne remplace jamais un clip existant.
+function yt2prPlace(seq, item) {
+  var pos = seq.getPlayerPosition();
+  var from = pos.seconds, len = 0;
+  try { len = item.getOutPoint().seconds - item.getInPoint().seconds; } catch (e) {}
+  var to = len > 0 ? from + len : from + 86400;
+
+  function findFree() {
+    var n = Math.min(seq.videoTracks.numTracks, seq.audioTracks.numTracks);
+    for (var i = 0; i < n; i++) {
+      if (yt2prTrackFree(seq.videoTracks[i], from, to) && yt2prTrackFree(seq.audioTracks[i], from, to)) return i;
+    }
+    return -1;
+  }
+
+  var idx = findFree();
+  if (idx < 0) {
+    // Aucune piste libre : on ajoute une piste vidéo + une piste audio.
+    try {
+      app.enableQE();
+      qe.project.getActiveSequence().addTracks(1, seq.videoTracks.numTracks, 1, seq.audioTracks.numTracks);
+    } catch (e) { return "Aucune piste libre et impossible d'en créer : clip non inséré."; }
+    idx = findFree();
+    if (idx < 0) return "Aucune piste libre : clip non inséré.";
+  }
+  seq.overwriteClip(item, pos, idx, idx);
+  return "Inséré sur V" + (idx + 1) + "/A" + (idx + 1) + " à la tête de lecture.";
+}
+
 // Retourne {"ok":true|false,"msg":"…"} sous forme de chaîne JSON.
 function yt2prImport(filePath, insertOnTimeline) {
   try {
@@ -52,8 +92,7 @@ function yt2prImport(filePath, insertOnTimeline) {
       } else if (!item) {
         msg += " Clip introuvable dans le projet : non inséré.";
       } else {
-        seq.videoTracks[0].overwriteClip(item, seq.getPlayerPosition().ticks);
-        msg += " Inséré à la tête de lecture.";
+        msg += " " + yt2prPlace(seq, item);
       }
     }
     return '{"ok":true,"msg":"' + yt2prEsc(msg) + '"}';

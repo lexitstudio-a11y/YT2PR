@@ -10,7 +10,8 @@
   var duration = 0, job = null;
 
   // (Re)charge le script Premiere à chaque ouverture, pour qu'une mise à jour de host.jsx soit prise en compte.
-  cs.evalScript('$.evalFile("' + path.join(extDir, "jsx", "host.jsx").replace(/\\/g, "/") + '")');
+  var loadHost = '$.evalFile("' + path.join(extDir, "jsx", "host.jsx").replace(/\\/g, "/") + '");';
+  cs.evalScript(loadHost);
 
   var verFile = path.join(extDir, ".version");
   try { $("updmsg").textContent = "Version installée : " + fs.readFileSync(verFile, "utf8"); } catch (e) { $("updmsg").textContent = "Version installée : d'origine"; }
@@ -102,9 +103,9 @@
       log("Fichier : " + file);
       if (!$("autoimport").checked) { setStatus("Terminé : " + file, "ok"); return; }
       var esc = file.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      cs.evalScript('yt2prImport("' + esc + '", "' + $("autoinsert").checked + '")', function (res) {
+      cs.evalScript(loadHost + 'yt2prImport("' + esc + '", "' + $("autoinsert").checked + '")', function (res) {
         try { var r = JSON.parse(res); setStatus(r.ok ? "Terminé ! " + r.msg : "Téléchargé, mais : " + r.msg, r.ok ? "ok" : "err"); }
-        catch (e) { setStatus("Téléchargé : " + file + " (import Premiere impossible)", "err"); }
+        catch (e) { log("Réponse Premiere : " + res); setStatus("Téléchargé, mais import impossible. Réponse de Premiere : " + res, "err"); }
       });
     }).catch(function (e) {
       setStatus(e.message.split("\n")[0] === "Annulé." ? "Annulé." : "Erreur : " + e.message.split("\n").slice(0, 2).join(" "), "err");

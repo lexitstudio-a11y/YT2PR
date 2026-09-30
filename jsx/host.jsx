@@ -37,7 +37,8 @@ function yt2prEsc(s) {
 // Retourne {"ok":true|false,"msg":"…"} sous forme de chaîne JSON.
 function yt2prImport(filePath, insertOnTimeline) {
   try {
-    if (!app.project) return '{"ok":false,"msg":"Aucun projet ouvert."}';
+    if (!app.project) return '{"ok":false,"msg":"Aucun projet ouvert dans Premiere Pro."}';
+    if (!new File(filePath).exists) return '{"ok":false,"msg":"Fichier introuvable : ' + yt2prEsc(filePath) + '"}';
     var bin = yt2prGetBin("YT2PR");
     var ok = app.project.importFiles([filePath], true, bin, false);
     if (!ok) return '{"ok":false,"msg":"Premiere Pro a refusé l\'import du fichier."}';

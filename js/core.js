@@ -220,8 +220,11 @@
       fs.mkdirSync(opts.outDir, { recursive: true });
 
       cb.status("Préparation des outils…");
-      var ytdlp = await ensureYtdlp(opts.binDir, cb.log, function (p) { cb.progress(p); });
-      var ffmpeg = await ensureFfmpeg(opts.binDir, cb.log, function (p) { cb.progress(p); });
+      var toolProgress = function (name) {
+        return function (p) { cb.progress(p); cb.status("Installation de " + name + " (une seule fois) : " + Math.round(p * 100) + "%"); };
+      };
+      var ytdlp = await ensureYtdlp(opts.binDir, cb.log, toolProgress("yt-dlp"));
+      var ffmpeg = await ensureFfmpeg(opts.binDir, cb.log, toolProgress("ffmpeg"));
 
       var suffix = range.start === null ? "" :
         " (" + formatSeconds(range.start).replace(/:/g, "-") + "_" + (range.end === null ? "fin" : formatSeconds(range.end).replace(/:/g, "-")) + ")";

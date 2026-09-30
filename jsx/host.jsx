@@ -44,8 +44,32 @@ function yt2prTrackFree(track, from, to) {
   return true;
 }
 
+// Signature de tous les clips existants (pour détecter un écrasement après coup).
+function yt2prSnapshot(seq) {
+  var out = [];
+  function scan(tracks, tag) {
+    for (var t = 0; t < tracks.numTracks; t++) {
+      for (var i = 0; i < tracks[t].clips.numItems; i++) {
+        var c = tracks[t].clips[i];
+        out.push(tag + t + ":" + c.start.ticks + "-" + c.end.ticks);
+      }
+    }
+  }
+  scan(seq.videoTracks, "V");
+  scan(seq.audioTracks, "A");
+  return out;
+}
+
+function yt2prLost(before, after) {
+  var set = {}, lost = 0;
+  for (var i = 0; i < after.length; i++) set[after[i]] = true;
+  for (var j = 0; j < before.length; j++) if (!set[before[j]]) lost++;
+  return lost;
+}
+
 // Place le clip sur la paire de pistes (vidéo + audio) vide la plus basse, à la tête de lecture.
-// Ne remplace jamais un clip existant.
+// On cible explicitement UNE seule piste vidéo et UNE seule piste audio (sinon Premiere écrit sur les
+// pistes ciblées, donc sur vos rushs), puis on vérifie qu'aucun clip existant n'a été touché.
 function yt2prPlace(seq, item) {
   var pos = seq.getPlayerPosition();
   var from = pos.seconds, len = 0;
@@ -70,7 +94,39 @@ function yt2prPlace(seq, item) {
     idx = findFree();
     if (idx < 0) return "Aucune piste libre : clip non inséré.";
   }
-  seq.overwriteClip(item, pos, idx, idx);
+
+  // Mémorise puis remplace le ciblage des pistes.
+  var vT = [], aT = [], i;
+  try {
+    for (i = 0; i < seq.videoTracks.numTracks; i++) { vT.push(seq.videoTracks[i].isTargeted()); seq.videoTracks[i].setTargeted(i === idx, true); }
+    for (i = 0; i < seq.audioTracks.numTracks; i++) { aT.push(seq.audioTracks[i].isTargeted()); seq.audioTracks[i].setTargeted(i === idx, true); }
+  } catch (e) {
+    return "Impossible de cibler les pistes (" + e + ") : clip non inséré pour ne pas écraser vos rushs.";
+  }
+
+  var before = yt2prSnapshot(seq);
+  var err = "";
+  try {
+    seq.videoTracks[idx].overwriteClip(item, pos.ticks);
+  } catch (e) { err = e.toString(); }
+
+  // Si l'audio n'est pas venu avec la vidéo, on le pose explicitement sur la piste audio libre.
+  try {
+    var hasAudio = false, ac = seq.audioTracks[idx].clips;
+    for (i = 0; i < ac.numItems; i++) if (ac[i].start.seconds <= from + 0.05 && ac[i].end.seconds > from) hasAudio = true;
+    if (!hasAudio) seq.audioTracks[idx].overwriteClip(item, pos.ticks);
+  } catch (e) {}
+
+  var lost = yt2prLost(before, yt2prSnapshot(seq));
+
+  // Restaure le ciblage d'origine.
+  try {
+    for (i = 0; i < vT.length; i++) seq.videoTracks[i].setTargeted(vT[i], true);
+    for (i = 0; i < aT.length; i++) seq.audioTracks[i].setTargeted(aT[i], true);
+  } catch (e) {}
+
+  if (err) return "Erreur d'insertion : " + err;
+  if (lost > 0) return "⚠ ATTENTION : " + lost + " clip(s) existant(s) ont été modifiés. Faites Cmd/Ctrl+Z immédiatement.";
   return "Inséré sur V" + (idx + 1) + "/A" + (idx + 1) + " à la tête de lecture.";
 }
 

@@ -30,3 +30,21 @@ Toujours `meilleure vidéo + meilleur audio` disponibles (4K/8K, 60 fps…). Pre
 - Sur Apple Silicon, ffmpeg (build Intel) tourne via Rosetta, ou installez-le avec `brew install ffmpeg`.
 - Téléchargez uniquement des contenus dont vous avez les droits.
 - Débogage : `.debug` ouvre le port 8099 (`http://localhost:8099`).
+
+---
+
+# Extension Chrome (téléchargement depuis le navigateur)
+
+Même moteur (yt-dlp + ffmpeg, qualité maximale, timecode) mais depuis Chrome / Brave / Edge. L'extension parle à une petite application locale (Node.js) : **Node.js doit être installé** (https://nodejs.org, version LTS).
+
+## Installation
+- **macOS** : dans le Terminal, `bash native-host/install-mac.sh` (ou la commande « une ligne » donnée dans le chat).
+- **Windows** : double-clic sur `native-host\install-windows.bat`.
+
+Puis dans Chrome : `chrome://extensions` → activer **Mode développeur** → **Charger l'extension non empaquetée** → choisir le dossier `~/.yt2pr/chrome-extension` (Windows : `%USERPROFILE%\.yt2pr\chrome-extension`).
+
+## Utilisation
+Ouvrez la page de la vidéo, cliquez sur l'icône YT2PR : le lien est déjà rempli. Choisissez le timecode si besoin, **Télécharger**. Fichiers dans `~/Downloads/YT2PR` (modifiable), bouton « Afficher dans le dossier ».
+
+## Mise à jour
+Bouton **⟳ Mettre à jour** dans la popup : récupère la dernière version depuis GitHub (extension + application locale) et recharge l'extension.

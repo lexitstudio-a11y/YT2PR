@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "YT2PR – Téléchargeur vidéo",
+  "version": "1.0.0",
+  "description": "Télécharge les vidéos YouTube, X/Twitter, Instagram, TikTok en qualité maximale, avec choix du timecode.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA63cXzbG8MB0dxMxC3Jj2l9PkOn5K38DwOQqz6Lh+jIn8tZ3S10S0FRw0kQpOt4t/c6b+nO8y30QfSAfnFiReeoCtCkuXzgnmJ0gn3++kKYvvz35/opHkljZlqO/Igp8srhBD0kSYdQL6DAwyXUDFAObaAegJg0mnu4mjWEa9yjNeiAzvPZ+Ic0b/+8zmm/zyOtgTOzDRzF7xbbXJ6X0YTL5On1MPiV76W5vtudJruwtYzPLdG6DjLRSsw5pQIRA4XX642BRc1coV4BQzoOHH8L473qOWCkI6QApkBGR37tJw/71cnQ4Ah3S3POWN5KSetvEqZ7D47eyY7wResFcXMwIDAQAB",
+  "permissions": ["nativeMessaging", "activeTab", "storage"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "YT2PR", "default_popup": "popup.html" }
+}

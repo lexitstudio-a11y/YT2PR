@@ -30,13 +30,15 @@
   // opts: {extDir, branch?, token?}. Retourne {version, changed:[…], needsRestart}
   async function update(opts, log) {
     var branch = opts.branch || DEFAULT_BRANCH;
+    var include = opts.include || INCLUDE;
+    var destFor = opts.destFor || function (p) { return path.join(opts.extDir, p); };
     var auth = opts.token ? { Authorization: "Bearer " + opts.token } : {};
     var api = "https://api.github.com/repos/" + REPO;
 
     log("Recherche de la dernière version (" + branch + ")…");
     var tree = JSON.parse(await get(api + "/git/trees/" + encodeURIComponent(branch) + "?recursive=1",
       Object.assign({ Accept: "application/vnd.github+json" }, auth)));
-    var files = tree.tree.filter(function (n) { return n.type === "blob" && INCLUDE.test(n.path); });
+    var files = tree.tree.filter(function (n) { return n.type === "blob" && include.test(n.path); });
     if (!files.length) throw new Error("Aucun fichier de l'extension trouvé sur la branche " + branch + ".");
 
     // Tout télécharger d'abord : on n'écrit rien si un téléchargement échoue.
@@ -49,7 +51,7 @@
 
     var changed = [];
     downloaded.forEach(function (f) {
-      var dest = path.join(opts.extDir, f.path);
+      var dest = destFor(f.path);
       var old = fs.existsSync(dest) ? fs.readFileSync(dest) : null;
       if (old && old.equals(f.data)) return;
       fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -59,7 +61,8 @@
     return {
       version: tree.sha.slice(0, 7),
       changed: changed,
-      needsRestart: changed.indexOf("CSXS/manifest.xml") !== -1
+      needsRestart: changed.indexOf("CSXS/manifest.xml") !== -1,
+      restartHint: changed
     };
   }
 

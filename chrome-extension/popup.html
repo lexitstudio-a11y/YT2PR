@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="head"><h1>YT2PR</h1><button id="update" title="Récupère la dernière version">⟳ Mettre à jour</button></div>
+
+  <label for="url">Lien de la vidéo</label>
+  <input id="url" type="text" placeholder="YouTube, X/Twitter, Instagram, TikTok…" spellcheck="false">
+  <button id="info" class="secondary">Analyser le lien</button>
+  <div id="meta" class="meta hidden"><img id="thumb" alt=""><div><strong id="title"></strong><br><span id="duration"></span></div></div>
+
+  <fieldset>
+    <legend>Portion (timecode)</legend>
+    <div class="row">
+      <div><label for="start">Début</label><input id="start" type="text" placeholder="00:00:00"></div>
+      <div><label for="end">Fin</label><input id="end" type="text" placeholder="fin de la vidéo"></div>
+    </div>
+    <p class="hint">SS, MM:SS ou HH:MM:SS. Vide = vidéo entière.</p>
+  </fieldset>
+
+  <label for="format">Format (qualité maximale toujours)</label>
+  <select id="format">
+    <option value="auto">Auto – sans perte si possible (MP4 / ProRes)</option>
+    <option value="original">Original (mkv/webm, qualité brute)</option>
+    <option value="prores">ProRes 422 HQ (.mov)</option>
+    <option value="h264">H.264 très haute qualité (.mp4)</option>
+  </select>
+  <label for="cookies">Cookies du navigateur (contenus privés)</label>
+  <select id="cookies">
+    <option value="">Aucun</option><option value="chrome">Chrome</option><option value="brave">Brave</option>
+    <option value="edge">Edge</option><option value="firefox">Firefox</option><option value="safari">Safari</option>
+  </select>
+  <label for="outdir">Dossier de destination</label>
+  <input id="outdir" type="text" spellcheck="false">
+
+  <button id="go" class="primary">Télécharger</button>
+  <button id="cancel" class="secondary hidden">Annuler</button>
+  <button id="reveal" class="secondary hidden">Afficher dans le dossier</button>
+  <div id="progress" class="hidden"><div id="bar"></div></div>
+  <div id="status"></div>
+  <div id="ver" class="hint"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

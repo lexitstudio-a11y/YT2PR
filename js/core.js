@@ -138,7 +138,16 @@
     });
   }
 
-  function ensureYtdlp(binDir, log, onProgress) {
+  // Plusieurs téléchargements en parallèle ne doivent installer chaque outil qu'une seule fois.
+  var installs = {};
+  function once(key, fn) {
+    if (!installs[key]) installs[key] = fn().catch(function (e) { delete installs[key]; throw e; });
+    return installs[key];
+  }
+  function ensureYtdlp(binDir, log, onProgress) { return once("yt-dlp:" + binDir, function () { return ensureYtdlpOnce(binDir, log, onProgress); }); }
+  function ensureFfmpeg(binDir, log, onProgress) { return once("ffmpeg:" + binDir, function () { return ensureFfmpegOnce(binDir, log, onProgress); }); }
+
+  function ensureYtdlpOnce(binDir, log, onProgress) {
     var found = findTool("yt-dlp", binDir);
     if (found) return Promise.resolve(found);
     var asset = IS_WIN ? "yt-dlp.exe" : IS_MAC ? "yt-dlp_macos" : "yt-dlp_linux";
@@ -150,7 +159,7 @@
     });
   }
 
-  function ensureFfmpeg(binDir, log, onProgress) {
+  function ensureFfmpegOnce(binDir, log, onProgress) {
     var found = findTool("ffmpeg", binDir);
     if (found) return Promise.resolve(found);
     var dest = path.join(binDir, exe("ffmpeg"));
@@ -228,7 +237,7 @@
 
       var suffix = range.start === null ? "" :
         " (" + formatSeconds(range.start).replace(/:/g, "-") + "_" + (range.end === null ? "fin" : formatSeconds(range.end).replace(/:/g, "-")) + ")";
-      var pathFile = path.join(os.tmpdir(), "yt2pr_" + Date.now() + ".txt");
+      var pathFile = path.join(os.tmpdir(), "yt2pr_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + ".txt");
       var args = buildYtdlpArgs({ url: opts.url, outDir: opts.outDir, pathFile: pathFile, suffix: suffix,
         ffmpegDir: path.dirname(ffmpeg), cookies: opts.cookies, range: range });
       cb.log("yt-dlp " + args.join(" "));

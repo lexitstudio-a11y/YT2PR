@@ -36,10 +36,7 @@
   function setStatus(msg, cls) { $("status").textContent = msg; $("status").className = "status " + (cls || ""); }
   function log(msg) { var l = $("log"); l.textContent += msg + "\n"; l.scrollTop = l.scrollHeight; }
   function progress(p) { $("progress").classList.remove("hidden"); $("bar").style.width = Math.round(p * 100) + "%"; }
-  function busy(b) {
-    $("go").disabled = $("info").disabled = b;
-    $("cancel").classList.toggle("hidden", !b);
-  }
+  function busy(b) { $("info").disabled = b; }
 
   // Dossier par défaut : à côté du projet Premiere, sinon Vidéos/Movies de l'utilisateur.
   function defaultOutDir(cb) {
@@ -88,28 +85,88 @@
   };
   $("url").addEventListener("input", function () { duration = 0; $("meta").classList.add("hidden"); });
 
-  $("cancel").onclick = function () { if (job) job.cancel(); };
+  /* ---------- Téléchargements parallèles ---------- */
+  var MAX_PARALLEL = 3, running = 0, waiting = [], importChain = Promise.resolve();
 
-  $("go").onclick = function () {
-    var url = $("url").value.trim();
-    $("log").textContent = "";
-    busy(true); progress(0); setStatus("Démarrage…");
-    job = core.startDownload({
-      url: url, start: $("start").value, end: $("end").value, duration: duration,
-      format: $("format").value, cookies: $("cookies").value, outDir: $("outdir").value, binDir: binDir
-    }, { log: log, status: function (m) { setStatus(m); }, progress: progress });
+  // Les imports dans Premiere sont faits un par un (chacun voit les pistes déjà occupées par le précédent).
+  function importInPremiere(file, insert) {
+    importChain = importChain.then(function () {
+      return new Promise(function (resolve) {
+        var esc = file.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        cs.evalScript(loadHost + 'yt2prImport("' + esc + '", "' + insert + '")', function (res) { resolve(res); });
+      });
+    });
+    return importChain;
+  }
 
-    job.promise.then(function (file) {
-      log("Fichier : " + file);
-      if (!$("autoimport").checked) { setStatus("Terminé : " + file, "ok"); return; }
-      var esc = file.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      cs.evalScript(loadHost + 'yt2prImport("' + esc + '", "' + $("autoinsert").checked + '")', function (res) {
-        try { var r = JSON.parse(res); setStatus(r.ok ? "Terminé ! " + r.msg : "Téléchargé, mais : " + r.msg, r.ok ? "ok" : "err"); }
-        catch (e) { log("Réponse Premiere : " + res); setStatus("Téléchargé, mais import impossible. Réponse de Premiere : " + res, "err"); }
+  function makeCard(label) {
+    var el = document.createElement("div"); el.className = "job";
+    el.innerHTML = '<div class="jt"></div><div class="jbar"><div></div></div><div class="jstatus"></div><button class="jx">Annuler</button>';
+    el.querySelector(".jt").textContent = label;
+    $("jobs").insertBefore(el, $("jobs").firstChild);
+    return {
+      el: el,
+      status: function (m, cls) { var n = el.querySelector(".jstatus"); n.textContent = m; n.className = "jstatus " + (cls || ""); },
+      progress: function (p) { el.querySelector(".jbar > div").style.width = Math.round(p * 100) + "%"; },
+      button: el.querySelector(".jx")
+    };
+  }
+
+  function shortLabel(o) {
+    var t = o.url.replace(/^https?:\/\/(www\.)?/, "");
+    t = t.length > 48 ? t.slice(0, 45) + "…" : t;
+    return t + (o.start || o.end ? "  [" + (o.start || "0") + " → " + (o.end || "fin") + "]" : "");
+  }
+
+  function startJob(j) {
+    running++;
+    j.card.status("Démarrage…");
+    j.handle = core.startDownload(j.opts, {
+      log: function (m) { log("[" + j.n + "] " + m); },
+      status: function (m) { j.card.status(m); },
+      progress: function (p) { j.card.progress(p); }
+    });
+    j.card.button.onclick = function () { j.handle.cancel(); };
+
+    j.handle.promise.then(function (file) {
+      log("[" + j.n + "] Fichier : " + file);
+      if (!j.autoimport) { j.card.status("Terminé : " + file, "ok"); return; }
+      j.card.status("Import dans Premiere…");
+      return importInPremiere(file, j.autoinsert).then(function (res) {
+        try { var r = JSON.parse(res); j.card.status(r.ok ? "Terminé ! " + r.msg : "Téléchargé, mais : " + r.msg, r.ok ? "ok" : "err"); }
+        catch (e) { log("Réponse Premiere : " + res); j.card.status("Téléchargé, mais import impossible. Réponse de Premiere : " + res, "err"); }
       });
     }).catch(function (e) {
-      setStatus(e.message.split("\n")[0] === "Annulé." ? "Annulé." : "Erreur : " + e.message.split("\n").slice(0, 2).join(" "), "err");
-      log(e.stack || e.message);
-    }).then(function () { busy(false); job = null; });
+      j.card.status(e.message.split("\n")[0] === "Annulé." ? "Annulé." : "Erreur : " + e.message.split("\n").slice(0, 2).join(" "), "err");
+      log("[" + j.n + "] " + (e.stack || e.message));
+    }).then(function () {
+      running--; j.done = true;
+      j.card.button.textContent = "Fermer";
+      j.card.button.onclick = function () { j.card.el.remove(); };
+      pump();
+    });
+  }
+
+  function pump() { while (running < MAX_PARALLEL && waiting.length) startJob(waiting.shift()); }
+
+  var jobCount = 0;
+  $("go").onclick = function () {
+    var url = $("url").value.trim();
+    if (!core.isSupportedUrl(url)) return setStatus("Lien invalide.", "err");
+    var opts = { url: url, start: $("start").value, end: $("end").value, duration: duration,
+      format: $("format").value, cookies: $("cookies").value, outDir: $("outdir").value, binDir: binDir };
+    try { core.resolveRange(opts.start, opts.end, opts.duration); } catch (e) { return setStatus(e.message, "err"); }
+
+    var j = { n: ++jobCount, opts: opts, autoimport: $("autoimport").checked, autoinsert: $("autoinsert").checked, card: makeCard(shortLabel(opts)) };
+    j.card.status(running < MAX_PARALLEL ? "Démarrage…" : "En attente d'un emplacement libre…");
+    j.card.button.onclick = function () {
+      var i = waiting.indexOf(j);
+      if (i !== -1) { waiting.splice(i, 1); j.card.status("Annulé.", "err"); j.card.button.textContent = "Fermer"; j.card.button.onclick = function () { j.card.el.remove(); }; }
+    };
+    waiting.push(j); pump();
+
+    // Formulaire prêt pour le lien suivant.
+    $("url").value = ""; $("start").value = ""; $("end").value = ""; duration = 0;
+    $("meta").classList.add("hidden"); setStatus("");
   };
 })();

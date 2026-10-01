@@ -27,3 +27,9 @@ code { background:var(--field); padding:0 3px; }
 .head button { padding:3px 8px; font-size:11px; }
 input[type=password] { width:100%; padding:6px 8px; background:var(--field); color:var(--fg); border:1px solid var(--line); border-radius:3px; }
 .adv { margin-top:14px; color:var(--muted); } .adv summary { cursor:pointer; }
+#jobs { margin-top:12px; }
+.job { position:relative; border:1px solid var(--line); border-radius:4px; padding:6px 8px 8px; margin-top:6px; background:var(--field); }
+.job .jt { font-size:11px; color:var(--muted); padding-right:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.job .jbar { height:4px; background:var(--bg); border-radius:2px; margin:5px 0; overflow:hidden; } .job .jbar > div { height:100%; width:0; background:var(--accent); transition:width .2s; }
+.job .jstatus { font-size:11px; } .job .jstatus.err { color:#ff6b6b; } .job .jstatus.ok { color:#6bd67d; }
+.job .jx { position:absolute; top:4px; right:4px; padding:1px 7px; font-size:10px; }

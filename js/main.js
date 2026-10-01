@@ -85,8 +85,8 @@
   };
   $("url").addEventListener("input", function () { duration = 0; $("meta").classList.add("hidden"); });
 
-  /* ---------- Téléchargements parallèles ---------- */
-  var MAX_PARALLEL = 3, running = 0, waiting = [], importChain = Promise.resolve();
+  /* ---------- File d'attente : un seul téléchargement à la fois ---------- */
+  var MAX_PARALLEL = 1, running = 0, waiting = [], importChain = Promise.resolve();
 
   // Les imports dans Premiere sont faits un par un (chacun voit les pistes déjà occupées par le précédent).
   function importInPremiere(file, insert) {
@@ -158,7 +158,7 @@
     try { core.resolveRange(opts.start, opts.end, opts.duration); } catch (e) { return setStatus(e.message, "err"); }
 
     var j = { n: ++jobCount, opts: opts, autoimport: $("autoimport").checked, autoinsert: $("autoinsert").checked, card: makeCard(shortLabel(opts)) };
-    j.card.status(running < MAX_PARALLEL ? "Démarrage…" : "En attente d'un emplacement libre…");
+    j.card.status(running < MAX_PARALLEL ? "Démarrage…" : "En attente (file d'attente : un téléchargement à la fois)…");
     j.card.button.onclick = function () {
       var i = waiting.indexOf(j);
       if (i !== -1) { waiting.splice(i, 1); j.card.status("Annulé.", "err"); j.card.button.textContent = "Fermer"; j.card.button.onclick = function () { j.card.el.remove(); }; }
